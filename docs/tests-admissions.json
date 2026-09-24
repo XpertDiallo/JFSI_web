@@ -1,0 +1,76 @@
+{
+  "date": "2026-09-24T10:21:50.481Z",
+  "environment": "local · données fictives",
+  "tests": [
+    {
+      "name": "Liste des inscriptions réservée aux validateurs",
+      "pass": true
+    },
+    {
+      "name": "Chaque nouveau dossier en attente apparaît au tableau",
+      "pass": true
+    },
+    {
+      "name": "Modération forum seule ne permet pas activation",
+      "pass": true
+    },
+    {
+      "name": "Modérateur ne peut pas auto-attribuer autorisation",
+      "pass": true
+    },
+    {
+      "name": "Refus exige un motif",
+      "pass": true
+    },
+    {
+      "name": "Refus enregistré avec motif, décision et date",
+      "pass": true
+    },
+    {
+      "name": "Un refus ne peut pas être réactivé par ancienne action",
+      "pass": true
+    },
+    {
+      "name": "Dossier suspendu impossible à activer",
+      "pass": true
+    },
+    {
+      "name": "Décisions concurrentes produisent un seul audit",
+      "pass": true
+    },
+    {
+      "name": "Habilitation explicite ouvre le tableau du modérateur",
+      "pass": true
+    },
+    {
+      "name": "Modérateur habilité active sans SMS et sans carte",
+      "pass": true
+    },
+    {
+      "name": "Modérateur habilité peut refuser avec motif",
+      "pass": true
+    },
+    {
+      "name": "Suspension bloque le validateur malgré ancienne session",
+      "pass": true
+    },
+    {
+      "name": "Désuspension du validateur conserve son habilitation",
+      "pass": true
+    },
+    {
+      "name": "Révocation bloque immédiatement et après reconnexion",
+      "pass": true
+    },
+    {
+      "name": "Dossier étranger au tenant et auto-validation refusés",
+      "pass": true
+    },
+    {
+      "name": "Modification profil ne supprime pas la décision",
+      "pass": true
+    }
+  ],
+  "passed": 17,
+  "total": 17
+}

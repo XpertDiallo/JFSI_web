@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-23T23:28:59.982Z",
+  "date": "2026-09-24T10:19:57.985Z",
   "environment": "local · données fictives",
   "tests": [
     {
@@ -51,23 +51,23 @@
       "pass": true
     },
     {
-      "name": "Candidat ne contourne pas la validation admin",
+      "name": "Candidat ne peut pas activer son compte",
       "pass": true
     },
     {
-      "name": "Administrateur approuve et génère OTP fictif 7 chiffres",
+      "name": "Renvoi de SMS désactivé",
       "pass": true
     },
     {
-      "name": "OTP incorrect refusé",
+      "name": "Ancien code SMS inutilisable",
       "pass": true
     },
     {
-      "name": "OTP correct active sympathisant",
+      "name": "Administrateur active directement sympathisant",
       "pass": true
     },
     {
-      "name": "OTP à usage unique",
+      "name": "Double décision administrative refusée",
       "pass": true
     },
     {
