@@ -1,0 +1,39 @@
+{
+  "date": "2026-09-24T05:05:51.460Z",
+  "tests": [
+    {
+      "name": "Six mois exacts, veille refusée",
+      "pass": true
+    },
+    {
+      "name": "Fin de mois corrigée : 31 août vers 28 février",
+      "pass": true
+    },
+    {
+      "name": "Un impayé bloque Mariage",
+      "pass": true
+    },
+    {
+      "name": "Paiement soumis ne règle pas un arriéré",
+      "pass": true
+    },
+    {
+      "name": "Suspension ferme le service",
+      "pass": true
+    },
+    {
+      "name": "Hausse future non rétroactive",
+      "pass": true
+    },
+    {
+      "name": "Avance ne masque pas un arriéré",
+      "pass": true
+    },
+    {
+      "name": "Questionnaire interdit âge mineur",
+      "pass": true
+    }
+  ],
+  "passed": 8,
+  "total": 8
+}

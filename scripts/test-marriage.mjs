@@ -1,0 +1,34 @@
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {createHmac} from 'node:crypto';
+import assert from 'node:assert/strict';
+const origin=process.env.JFSI_TEST_ORIGIN||'http://localhost:5173';
+if(!/^http:\/\/(localhost|127\.0\.0\.1):/.test(origin))throw Error('Tests de mutation limités à la base locale.');
+const access=JSON.parse(readFileSync('work/access.json','utf8'));const report=[];
+function totp(secret){let bits='';for(const c of secret)bits+='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'.indexOf(c).toString(2).padStart(5,'0');const key=Buffer.from((bits.match(/.{8}/g)||[]).map(s=>parseInt(s,2)));const b=Buffer.alloc(8);b.writeBigUInt64BE(BigInt(Math.floor(Date.now()/30000)));const h=createHmac('sha1',key).update(b).digest(),o=h[19]&15;return String((h.readUInt32BE(o)&0x7fffffff)%1000000).padStart(6,'0')}
+function jar(){return new Map()}
+async function request(path,options={},cookies=jar()){const headers={...options.headers,cookie:[...cookies].map(([k,v])=>k+'='+v).join('; ')};if(options.method==='POST')headers.Origin??=origin;const res=await fetch(origin+path,{...options,headers,redirect:'manual'});for(const s of res.headers.getSetCookie()){const [p]=s.split(';'),i=p.indexOf('=');cookies.set(p.slice(0,i),p.slice(i+1))}const bytes=new Uint8Array(await res.arrayBuffer());let body;try{body=JSON.parse(new TextDecoder().decode(bytes))}catch{body=new TextDecoder().decode(bytes)}return {status:res.status,body,bytes,headers:res.headers}}
+const get=(r,c)=>request('/api/gateway?resource='+r,{},c);
+const post=(b,c)=>request('/api/gateway',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)},c);
+async function check(name,fn){try{await fn();report.push({name,pass:true});console.log('PASS '+name)}catch(e){report.push({name,pass:false,error:e.message});console.log('FAIL '+name+' : '+e.message)}}
+
+const sessions={};for(const profile of ['administrateur','membre','moderateur','sympathisant']){const c=jar(),a=access.accounts[profile];await request('/signin-with-chatgpt?return_to=%2F',{},c);const r=await post({action:'demo_login',profile,code:a.code,mfa:a.totp?totp(a.totp):''},c);assert.equal(r.status,200);sessions[profile]=c}
+const admin=sessions.administrateur,member=sessions.membre,target=sessions.moderateur,sym=sessions.sympathisant;
+const mg=(view,c)=>request('/api/marriage?view='+view,{},c),mp=(b,c)=>request('/api/marriage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)},c);
+let mine,targetProfile,interest;
+await check('Mariage anonyme refusé',async()=>assert.equal((await mg('directory')).status,401));
+await check('Ancienneté et cotisations validées ouvrent Mariage',async()=>{const r=await mg('mine',member);assert.equal(r.status,200);assert.equal(r.body.eligibility.eligible,true);mine=r.body.profile});
+await check('Nouvel adhérent ou sympathisant ne consulte pas annuaire',async()=>assert.equal((await mg('directory',sym)).status,403));
+await check('Recherche privée sans téléphone email numéro membre',async()=>{const r=await mg('directory',member);assert.equal(r.status,200);assert(r.body.items.length>=1);targetProfile=r.body.items[0];assert(!/"(phone|email|number|owner|profile)"/.test(JSON.stringify(r.body)));assert.equal((await mg('directory&nationality=burkina',member)).body.total,0)});
+await check('Photo privée accessible seulement aux éligibles',async()=>{assert.equal((await request(targetProfile.photo,{},member)).status,200);assert.equal((await request(targetProfile.photo)).status,401);assert.equal((await request(targetProfile.photo,{},sym)).status,403)});
+await check('Refus déclaration de majorité absente',async()=>assert.equal((await mp({action:'submit',profile:{...mine.profile,adult:false}},member)).status,400));
+await check('Refus photo ou nationalité absente',async()=>{for(const profile of [{...mine.profile,photo:''},{...mine.profile,nationality:''}])assert.equal((await mp({action:'submit',profile},member)).status,400)});
+await check('Refus coordonnées dans présentation',async()=>assert.equal((await mp({action:'submit',profile:{...mine.profile,description:'Mon téléphone est +2250700000000'}},member)).status,400));
+await check('Modification remet le profil en validation',async()=>{assert.equal((await mp({action:'submit',profile:mine.profile},member)).status,200);assert(!(await mg('directory',target)).body.items.some(p=>p.id===mine.id));assert.equal((await request('/api/marriage/photo?id='+mine.id,{},target)).status,404)});
+await check('Seul administrateur approuve le profil',async()=>{assert.equal((await mp({action:'review',id:mine.id,accept:true,reason:'Recette profil fictif'},target)).status,403);assert.equal((await mp({action:'review',id:mine.id,accept:true,reason:'Recette profil fictif validée'},admin)).status,200)});
+await check('Demande transmise au bureau sans doublon',async()=>{assert.equal((await mp({action:'interest',target:targetProfile.id,reason:'Test de mise en relation fictive'},member)).status,200);assert.equal((await mp({action:'interest',target:targetProfile.id,reason:''},member)).status,409);interest=(await mg('mine',member)).body.requests.find(r=>r.direction==='out').id});
+await check('Pas de consentement avant médiation administrative',async()=>assert.equal((await mp({action:'request_consent',id:interest,accept:true},target)).status,403));
+await check('Accord destinataire exigé avant accompagnement',async()=>{assert.equal((await mp({action:'request_review',id:interest,status:'Accompagnement en cours'},admin)).status,409);assert.equal((await mp({action:'request_review',id:interest,status:'Consentement demandé'},admin)).status,200);assert.equal((await mp({action:'request_consent',id:interest,accept:true},member)).status,403);assert.equal((await mp({action:'request_consent',id:interest,accept:true},target)).status,200);assert.equal((await mp({action:'request_review',id:interest,status:'Accompagnement en cours'},admin)).status,200)});
+await check('Retrait masque immédiatement profil et photo',async()=>{assert.equal((await mp({action:'withdraw'},member)).status,200);assert(!(await mg('directory',target)).body.items.some(p=>p.id===mine.id));assert.equal((await request('/api/marriage/photo?id='+mine.id,{},target)).status,404)});
+await mp({action:'submit',profile:mine.profile},member);await mp({action:'review',id:mine.id,accept:true,reason:'Restauration du profil fictif après recette'},admin);
+await check('Registre matrimonial réservé administration',async()=>assert.equal((await mg('admin',member)).status,403));
+mkdirSync('docs',{recursive:true});writeFileSync('docs/tests-marriage.json',JSON.stringify({date:new Date().toISOString(),tests:report,passed:report.filter(r=>r.pass).length,total:report.length},null,2));console.log(`${report.filter(r=>r.pass).length}/${report.length} tests Mariage réussis`);if(report.some(r=>!r.pass))process.exitCode=1;

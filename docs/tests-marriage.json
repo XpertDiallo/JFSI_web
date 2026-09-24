@@ -1,0 +1,67 @@
+{
+  "date": "2026-09-24T05:04:26.781Z",
+  "tests": [
+    {
+      "name": "Mariage anonyme refusé",
+      "pass": true
+    },
+    {
+      "name": "Ancienneté et cotisations validées ouvrent Mariage",
+      "pass": true
+    },
+    {
+      "name": "Nouvel adhérent ou sympathisant ne consulte pas annuaire",
+      "pass": true
+    },
+    {
+      "name": "Recherche privée sans téléphone email numéro membre",
+      "pass": true
+    },
+    {
+      "name": "Photo privée accessible seulement aux éligibles",
+      "pass": true
+    },
+    {
+      "name": "Refus déclaration de majorité absente",
+      "pass": true
+    },
+    {
+      "name": "Refus photo ou nationalité absente",
+      "pass": true
+    },
+    {
+      "name": "Refus coordonnées dans présentation",
+      "pass": true
+    },
+    {
+      "name": "Modification remet le profil en validation",
+      "pass": true
+    },
+    {
+      "name": "Seul administrateur approuve le profil",
+      "pass": true
+    },
+    {
+      "name": "Demande transmise au bureau sans doublon",
+      "pass": true
+    },
+    {
+      "name": "Pas de consentement avant médiation administrative",
+      "pass": true
+    },
+    {
+      "name": "Accord destinataire exigé avant accompagnement",
+      "pass": true
+    },
+    {
+      "name": "Retrait masque immédiatement profil et photo",
+      "pass": true
+    },
+    {
+      "name": "Registre matrimonial réservé administration",
+      "pass": true
+    }
+  ],
+  "passed": 15,
+  "total": 15
+}

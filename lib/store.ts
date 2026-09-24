@@ -1,0 +1,16 @@
+import { env } from 'cloudflare:workers';
+import { AppError, digest } from './security';
+import { defaults, type Member } from './domain';
+export const db=()=>{if(!env.DB)throw new AppError(503,'La base de données est momentanément indisponible.');return env.DB};
+export const id=()=>crypto.randomUUID();
+export async function rows(sql:string,...values:unknown[]){return (await db().prepare(sql).bind(...values).all()).results as any[]}
+export async function one(sql:string,...values:unknown[]){return await db().prepare(sql).bind(...values).first() as any}
+export function statement(sql:string,...v:unknown[]){return db().prepare(sql).bind(...v)}
+export function audit(actor:Member,action:string,target:string,detail=''){return statement('INSERT INTO audit(id,tenant,actor,action,target,detail,created) VALUES(?,?,?,?,?,?,?)',id(),actor.tenant,actor.id,action,target,detail,new Date().toISOString())}
+export async function record(tenant:string,key:string){const r=await one('SELECT * FROM records WHERE tenant=? AND id=?',tenant,key);return r?{...r,...JSON.parse(r.data)}:null}
+export async function list(tenant:string,kind:string){return (await rows('SELECT * FROM records WHERE tenant=? AND kind=? ORDER BY updated DESC',tenant,kind)).map(r=>({...r,...JSON.parse(r.data)}))}
+export function insert(tenant:string,kind:string,owner:string,data:any,key=id()){const obligation=kind==='payment'&&data.type!=='don'?(data.type==='adhesion'?'adhesion':data.type+':'+data.period):null;return statement('INSERT INTO records(id,tenant,kind,owner,obligation,data,version,updated) VALUES(?,?,?,?,?,?,1,?)',key,tenant,kind,owner,obligation,JSON.stringify(data),new Date().toISOString())}
+export async function update(actor:Member,r:any,data:unknown,action:string,detail=''){const result=await db().batch([statement('UPDATE records SET data=?,version=version+1,updated=? WHERE id=? AND tenant=? AND version=?',JSON.stringify(data),new Date().toISOString(),r.id,actor.tenant,r.version),statement('INSERT INTO audit(id,tenant,actor,action,target,detail,created) SELECT ?,?,?,?,?,?,? WHERE changes()>0',id(),actor.tenant,actor.id,action,r.id,detail,new Date().toISOString())]);if(!result[0].meta.changes)throw new AppError(409,'Cette donnée a changé. Actualisez avant de réessayer.')}
+export async function settings(tenant:string){const row=await one('SELECT data FROM settings WHERE tenant=?',tenant);return {...defaults,duesRates:[{from:"0000-01",amount:defaults.monthly}],...(row?JSON.parse(row.data):{})}}
+export async function rate(key:string,max:number,windowSeconds:number){const slot=Math.floor(Date.now()/1000/windowSeconds);const k=await digest(key+':'+slot);await db().prepare('INSERT INTO rates(id,count,expires) VALUES(?,1,?) ON CONFLICT(id) DO UPDATE SET count=count+1').bind(k,Date.now()+windowSeconds*1000).run();const row=await one('SELECT count FROM rates WHERE id=?',k);if(row.count>max)throw new AppError(429,'Trop de tentatives. Veuillez patienter avant de réessayer.')}
+export function notice(m:Member,title:string,body:string){return insert(m.tenant,'notification',m.id,{title,body,read:false})}

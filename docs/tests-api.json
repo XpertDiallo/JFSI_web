@@ -1,0 +1,240 @@
+{
+  "date": "2026-09-23T23:28:59.982Z",
+  "environment": "local · données fictives",
+  "tests": [
+    {
+      "name": "Accueil répond et langue française",
+      "pass": true
+    },
+    {
+      "name": "API privée refuse anonyme",
+      "pass": true
+    },
+    {
+      "name": "Contenus publics importés sans sujets privés",
+      "pass": true
+    },
+    {
+      "name": "Image privée inaccessible anonymement",
+      "pass": true
+    },
+    {
+      "name": "Connexion du profil administrateur",
+      "pass": true
+    },
+    {
+      "name": "Connexion du profil comptable",
+      "pass": true
+    },
+    {
+      "name": "Connexion du profil communication",
+      "pass": true
+    },
+    {
+      "name": "Connexion du profil auditeur",
+      "pass": true
+    },
+    {
+      "name": "Connexion du profil moderateur",
+      "pass": true
+    },
+    {
+      "name": "Connexion du profil membre",
+      "pass": true
+    },
+    {
+      "name": "Connexion du profil sympathisant",
+      "pass": true
+    },
+    {
+      "name": "Connexion du profil candidat",
+      "pass": true
+    },
+    {
+      "name": "Candidat ne contourne pas la validation admin",
+      "pass": true
+    },
+    {
+      "name": "Administrateur approuve et génère OTP fictif 7 chiffres",
+      "pass": true
+    },
+    {
+      "name": "OTP incorrect refusé",
+      "pass": true
+    },
+    {
+      "name": "OTP correct active sympathisant",
+      "pass": true
+    },
+    {
+      "name": "OTP à usage unique",
+      "pass": true
+    },
+    {
+      "name": "Sympathisant sans carte",
+      "pass": true
+    },
+    {
+      "name": "Membre ne lit pas le registre privé",
+      "pass": true
+    },
+    {
+      "name": "CM ne voit pas les paiements des autres",
+      "pass": true
+    },
+    {
+      "name": "Modérateur ne peut pas attribuer de rôle",
+      "pass": true
+    },
+    {
+      "name": "Origine externe refusée",
+      "pass": true
+    },
+    {
+      "name": "Téléversement preuve PNG privée",
+      "pass": true
+    },
+    {
+      "name": "Faux fichier PNG refusé",
+      "pass": true
+    },
+    {
+      "name": "Création paiement adhésion",
+      "pass": true
+    },
+    {
+      "name": "Doublon adhésion même ou autre période refusé",
+      "pass": true
+    },
+    {
+      "name": "Administrateur ne valide pas les paiements",
+      "pass": true
+    },
+    {
+      "name": "CM interdit sur preuve privée",
+      "pass": true
+    },
+    {
+      "name": "Autre membre interdit sur preuve privée",
+      "pass": true
+    },
+    {
+      "name": "Auditeur lit la preuve et ne valide pas",
+      "pass": true
+    },
+    {
+      "name": "Comptable valide et active la carte",
+      "pass": true
+    },
+    {
+      "name": "Double validation refusée",
+      "pass": true
+    },
+    {
+      "name": "Carte PDF générée",
+      "pass": true
+    },
+    {
+      "name": "Reçu PDF et contrôle propriétaire",
+      "pass": true
+    },
+    {
+      "name": "QR minimal sans données sensibles",
+      "pass": true
+    },
+    {
+      "name": "Synthèse financière agrégée",
+      "pass": true
+    },
+    {
+      "name": "Export financier interdit au membre",
+      "pass": true
+    },
+    {
+      "name": "Export financier CSV autorisé comptable",
+      "pass": true
+    },
+    {
+      "name": "Création événement",
+      "pass": true
+    },
+    {
+      "name": "Membre ne se déclare pas présent",
+      "pass": true
+    },
+    {
+      "name": "Présence responsable et historique personnel",
+      "pass": true
+    },
+    {
+      "name": "Correction présence supprime historique sans doublon",
+      "pass": true
+    },
+    {
+      "name": "Listes de présence PDF et Word",
+      "pass": true
+    },
+    {
+      "name": "Sujet libre créé",
+      "pass": true
+    },
+    {
+      "name": "Modération exige un motif",
+      "pass": true
+    },
+    {
+      "name": "Modérateur Forum masque le sujet côté serveur",
+      "pass": true
+    },
+    {
+      "name": "Modérateur Forum ne modère pas le fil",
+      "pass": true
+    },
+    {
+      "name": "Suggestions confidentielles et suivi",
+      "pass": true
+    },
+    {
+      "name": "Journal d’audit réservé",
+      "pass": true
+    },
+    {
+      "name": "Programme importé 20 activités",
+      "pass": true
+    },
+    {
+      "name": "Contenu staff caché aux membres",
+      "pass": true
+    },
+    {
+      "name": "Profil ne transmet aucun téléphone",
+      "pass": true
+    },
+    {
+      "name": "Anniversaires privés et données minimales",
+      "pass": true
+    },
+    {
+      "name": "Cotisations personnelles, arriéré et carte",
+      "pass": true
+    },
+    {
+      "name": "Export Excel valide autorisé au comptable",
+      "pass": true
+    },
+    {
+      "name": "Publication éditable avec date événement",
+      "pass": true
+    },
+    {
+      "name": "Date calendrier impossible refusée",
+      "pass": true
+    },
+    {
+      "name": "Administration initiale et protection MFA contre réenrôlement",
+      "pass": true
+    }
+  ],
+  "passed": 58,
+  "total": 58
+}

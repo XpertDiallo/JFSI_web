@@ -1,0 +1,24 @@
+import { z } from 'zod';
+export const roles = ['member','admin','accountant','cm','auditor'] as const;
+export type Role = typeof roles[number];
+export type Member = { id:string; tenant:string; name:string; firstName:string; phone:string; role:Role; status:string; number:string|null; scope:string; profile:string; joined:string; suspended:number };
+export const active = (m:Member|null)=>!!m&&!m.suspended&&['sympathisant','adherent'].includes(m.status);
+export const can = (m:Member|null,p:string)=>{
+ if(!m||m.suspended)return false;
+ if(p==='admin')return m.role==='admin';
+ if(p==='finance')return m.role==='accountant';
+ if(p==='audit')return ['admin','auditor'].includes(m.role);
+ if(p==='finance-read')return ['accountant','auditor'].includes(m.role);
+ if(p==='publish'||p==='attendance')return ['admin','cm'].includes(m.role);
+ if(p==='forum-moderate')return ['admin','cm'].includes(m.role)||active(m)&&['forum','both'].includes(m.scope);
+ if(p==='feed-moderate')return ['admin','cm'].includes(m.role)||active(m)&&['feed','both'].includes(m.scope);
+ if(p==='member')return active(m);
+ return false;
+};
+export const registration = z.object({name:z.string().trim().min(2).max(80),firstName:z.string().trim().min(2).max(120),phone:z.string().regex(/^\+[1-9]\d{7,14}$/),gender:z.enum(['Homme','Femme']),day:z.coerce.number().int().min(1).max(31),month:z.coerce.number().int().min(1).max(12),country:z.string().trim().min(2).max(80),commune:z.string().trim().min(2).max(100),district:z.string().trim().min(2).max(100),marital:z.enum(['Célibataire','Marié(e)','Veuf(ve)']),profession:z.string().trim().max(80).default(''),email:z.union([z.string().email(),z.literal('')]).default(''),consent:z.literal(true),photoConsent:z.boolean().default(false),birthdayVisible:z.boolean().default(true)}).refine(x=>x.day<=new Date(2000,x.month,0).getDate(),'Jour et mois de naissance incohérents.');
+export const calendarDate=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(v=>{const d=new Date(v+'T00:00:00Z');return !isNaN(d.getTime())&&d.toISOString().slice(0,10)===v},'Date invalide.');
+export const eventInput = z.object({title:z.string().trim().min(3).max(150),type:z.string().trim().min(2).max(80),date:calendarDate,time:z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),location:z.string().trim().min(3).max(200),body:z.string().trim().min(10).max(10000),visibility:z.enum(['public','members']),status:z.enum(['Brouillon','Publié','Réalisé','Reporté','Annulé','Archivé']),responsible:z.string().max(100).default(''),programme:z.string().max(100).default(''),report:z.string().max(16000).default('')});
+export const defaults = { adhesion:2500, monthly:500, contacts:['+2250708483294','+2250758565718'], orange:'+2250757883181',wave:'+2250757883181',mtn:'+2250504770209',address:'Abidjan, Cocody, Bonoumin, Lot 469, Îlot 36, 01 BP 3718 Abidjan 01',facebook:'',year:2026,cardMonths:12,otpMinutes:10,otpAttempts:5,otpResends:3,uploadMB:5,slogan:'JFSI, Unis par l’islam et pour l’islam'};
+export const money=(n:number)=>new Intl.NumberFormat('fr-CI').format(n)+' FCFA';
+export const labels:Record<string,string>={member:'Membre',admin:'Administrateur',accountant:'Comptable',cm:'Community manager',auditor:'Commissaire aux comptes',pending:'En attente de validation',otp:'Vérification SMS',sympathisant:'Sympathisant',adherent:'Adhérent',rejected:'Dossier rejeté',approved:'Validé',submitted:'En attente',quarantine:'Analyse en attente'};
+export const moderatorLabel=(s:string)=>s==='forum'?'MODÉRATEUR · FORUM':s==='feed'?'MODÉRATEUR · FIL':s==='both'?'MODÉRATEUR · FORUM & FIL':'';
