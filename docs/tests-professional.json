@@ -1,0 +1,104 @@
+{
+  "date": "2026-09-25T04:54:49.146Z",
+  "environment": "local · données fictives",
+  "tests": [
+    {
+      "name": "Statistiques filtrées et agrégées sans identité",
+      "pass": true
+    },
+    {
+      "name": "Dossier complet administrateur et refus membre/CM non habilité",
+      "pass": true
+    },
+    {
+      "name": "Modérateur sans délégation ne publie pas et ne lit pas les dossiers",
+      "pass": true
+    },
+    {
+      "name": "Délégation explicite ouvre dossier et publication seulement",
+      "pass": true
+    },
+    {
+      "name": "Affiche jointe visible uniquement au public de la publication",
+      "pass": true
+    },
+    {
+      "name": "Affiche masquée immédiatement inaccessible par URL",
+      "pass": true
+    },
+    {
+      "name": "Une photo privée ne devient pas affiche",
+      "pass": true
+    },
+    {
+      "name": "Révocation de délégation bloque immédiatement le dossier",
+      "pass": true
+    },
+    {
+      "name": "Photo de profil facultative privée",
+      "pass": true
+    },
+    {
+      "name": "Trésorerie joint un justificatif et enregistre une écriture",
+      "pass": true
+    },
+    {
+      "name": "Reprise du même enregistrement sans double comptage",
+      "pass": true
+    },
+    {
+      "name": "Deux écritures concurrentes avec même clé ne sont comptées qu’une fois",
+      "pass": true
+    },
+    {
+      "name": "Justificatif limité au trésorier auditeur et membre concerné",
+      "pass": true
+    },
+    {
+      "name": "États par mois type et événement cohérents avec CSV Excel PDF",
+      "pass": true
+    },
+    {
+      "name": "Historique financier visible au membre concerné et absent de l’administration",
+      "pass": true
+    },
+    {
+      "name": "Dons regroupés et donateur unique entre appel et événement",
+      "pass": true
+    },
+    {
+      "name": "Mois d’affectation et date de versement restent distincts",
+      "pass": true
+    },
+    {
+      "name": "Livre et médiathèque présents et liste sans données privées",
+      "pass": true
+    },
+    {
+      "name": "Seuls les éditeurs habilités ajoutent des lectures",
+      "pass": true
+    },
+    {
+      "name": "Lecture PDF en ligne et téléchargement dédié refusé",
+      "pass": true
+    },
+    {
+      "name": "Lecture partielle Range valide et hors limites refusée",
+      "pass": true
+    },
+    {
+      "name": "Justificatif privé et absence de droits empêchent publication",
+      "pass": true
+    },
+    {
+      "name": "Retrait du livre ferme la lecture et le catalogue immédiatement",
+      "pass": true
+    },
+    {
+      "name": "Fichier en quarantaine non publié et non lu",
+      "pass": true
+    }
+  ],
+  "passed": 24,
+  "total": 24
+}

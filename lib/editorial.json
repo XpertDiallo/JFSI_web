@@ -278,5 +278,44 @@
     "alt": "Affiche rose de la Cellule féminine JFSI annonçant Octobre Rose, avec un ruban rose et le message Ensemble pour la santé des femmes.",
     "assetKey": "poster-21",
     "image": "/api/editorial-image/poster-21"
+  },
+  {
+    "filename": "Actu11.jpeg",
+    "title": "Rencontre trimestrielle du Bureau exécutif — 4 octobre 2026",
+    "body": "Le Bureau exécutif du JFSI se retrouve le dimanche 4 octobre 2026 à 8 h au siège JFSI, Riviera Bonoumin. Échanger, évaluer et construire ensemble pour une communauté plus forte, plus engagée et plus utile. Contacts de l’organisation indiqués sur l’affiche : 07 08 48 32 94 / 07 58 56 57 18.",
+    "category": "Rencontre",
+    "dateLabel": "4 octobre 2026 · 8 h",
+    "sortDate": "2026-10-04",
+    "eventMonth": 10,
+    "eventYear": 2026,
+    "alt": "Affiche de la rencontre trimestrielle du Bureau exécutif JFSI, dimanche 4 octobre 2026 à 8 h au siège de Riviera Bonoumin.",
+    "kind": "content",
+    "visibility": "public",
+    "assetKey": "poster-22",
+    "image": "/api/editorial-image/poster-22"
+  },
+  {
+    "filename": "Actu12.jpeg",
+    "title": "Octobre Rose : les hommes, acteurs de la sensibilisation",
+    "body": "La Cellule féminine JFSI invite les hommes à prendre part à la sensibilisation autour du cancer du sein : relayer des messages fiables, échanger avec son entourage et encourager les femmes à prendre soin de leur santé. « Votre voix compte ! » Une campagne de mobilisation sans date d’événement annoncée.",
+    "category": "Cellule féminine",
+    "dateLabel": "Annonce sans date d’événement",
+    "alt": "Affiche rose de la Cellule féminine JFSI invitant les hommes à participer à la sensibilisation autour du cancer du sein.",
+    "kind": "content",
+    "visibility": "public",
+    "assetKey": "poster-23",
+    "image": "/api/editorial-image/poster-23"
+  },
+  {
+    "filename": "Actu13.jpeg",
+    "title": "Octobre Rose : ensemble contre le cancer du sein",
+    "body": "La Cellule féminine JFSI se mobilise à l’occasion d’Octobre Rose. Cette affiche porte un message collectif d’information, de soutien et d’attention à la santé des femmes : « Ensemble plus fortes ». Le visuel ne précise ni jour d’événement ni année.",
+    "category": "Cellule féminine",
+    "dateLabel": "Annonce sans date d’événement",
+    "alt": "Affiche Octobre Rose de la Cellule féminine JFSI : groupe mobilisé autour du ruban rose et du message Ensemble contre le cancer du sein.",
+    "kind": "content",
+    "visibility": "public",
+    "assetKey": "poster-24",
+    "image": "/api/editorial-image/poster-24"
   }
 ]

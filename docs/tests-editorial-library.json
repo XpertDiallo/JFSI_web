@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-30T17:42:14.727Z",
+  "environment": "local",
+  "tests": [
+    {
+      "name": "Trois nouvelles affiches importées, Octobre Rose sans doublon",
+      "pass": true
+    },
+    {
+      "name": "Date du bureau complète, sensibilisation sans date inventée",
+      "pass": true
+    },
+    {
+      "name": "Affiches JPEG accessibles et effectivement servies",
+      "pass": true
+    },
+    {
+      "name": "Bibliothèque publiée : 95 livres uniques et 3 ouvrages anglais",
+      "pass": true
+    }
+  ],
+  "passed": 4,
+  "total": 4
+}

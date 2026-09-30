@@ -1,0 +1,44 @@
+{
+  "date": "2026-09-30T12:44:57.843Z",
+  "environment": "local · données fictives",
+  "tests": [
+    {
+      "name": "Espace Auditeur dédié et écritures interdites",
+      "pass": true
+    },
+    {
+      "name": "Auditeur ajoute une observation datée sans modifier l’écriture",
+      "pass": true
+    },
+    {
+      "name": "Répétition du commentaire sans doublon",
+      "pass": true
+    },
+    {
+      "name": "Seul Auditeur commente, trésorier et membre concerné lisent",
+      "pass": true
+    },
+    {
+      "name": "Commentaires ne peuvent viser une photo personnelle ou un fichier absent",
+      "pass": true
+    },
+    {
+      "name": "Trace d’audit visible au membre concerné sans exposition générale",
+      "pass": true
+    },
+    {
+      "name": "Excel Auditeur applique mois année type événement et statut",
+      "pass": true
+    },
+    {
+      "name": "Un justificatif ne peut pas être rattaché simultanément à deux écritures",
+      "pass": true
+    },
+    {
+      "name": "Années issues de la date réelle et conservées après filtrage",
+      "pass": true
+    }
+  ],
+  "passed": 9,
+  "total": 9
+}

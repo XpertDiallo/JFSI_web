@@ -1,0 +1,12 @@
+{
+  "books": 95,
+  "duplicatesExcluded": 4,
+  "pages": 12605,
+  "validatedReadingAssets": 3064,
+  "readingBytes": 435137337,
+  "languages": {
+    "Français": 92,
+    "Anglais": 3
+  },
+  "status": "passed"
+}

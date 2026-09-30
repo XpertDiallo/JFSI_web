@@ -1,0 +1,37 @@
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {createHmac} from 'node:crypto';
+import assert from 'node:assert/strict';
+const origin=process.env.JFSI_TEST_ORIGIN||'http://localhost:5173';
+if(!/^http:\/\/(localhost|127\.0\.0\.1):/.test(origin))throw Error('Tests de mutation limités à la base locale.');
+const access=JSON.parse(readFileSync('work/access.json','utf8'));const report=[];
+function totp(secret){let bits='';for(const c of secret)bits+='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'.indexOf(c).toString(2).padStart(5,'0');const key=Buffer.from((bits.match(/.{8}/g)||[]).map(s=>parseInt(s,2)));const b=Buffer.alloc(8);b.writeBigUInt64BE(BigInt(Math.floor(Date.now()/30000)));const h=createHmac('sha1',key).update(b).digest(),o=h[19]&15;return String((h.readUInt32BE(o)&0x7fffffff)%1000000).padStart(6,'0')}
+function jar(){return new Map()}
+async function request(path,options={},cookies=jar()){const headers={...options.headers,cookie:[...cookies].map(([k,v])=>k+'='+v).join('; ')};if(options.method==='POST')headers.Origin??=origin;const res=await fetch(origin+path,{...options,headers,redirect:'manual'});for(const s of res.headers.getSetCookie()){const [p]=s.split(';'),i=p.indexOf('=');cookies.set(p.slice(0,i),p.slice(i+1))}const bytes=new Uint8Array(await res.arrayBuffer());let body;try{body=JSON.parse(new TextDecoder().decode(bytes))}catch{body=new TextDecoder().decode(bytes)}return {status:res.status,body,bytes,headers:res.headers}}
+const get=(r,c)=>request('/api/gateway?resource='+r,{},c);
+const post=(b,c)=>request('/api/gateway',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)},c);
+async function check(name,fn){try{await fn();report.push({name,pass:true});console.log('PASS '+name)}catch(e){report.push({name,pass:false,error:e.message});console.log('FAIL '+name+' : '+e.message)}}
+import {randomUUID} from 'node:crypto';
+async function login(key){const a=access.accounts[key],c=jar();await request('/signin-with-chatgpt?return_to=%2F',{},c);const r=await post({action:'demo_login',profile:key,code:a.code,mfa:a.totp?totp(a.totp):''},c);assert.equal(r.status,200,JSON.stringify(r.body));return c}
+const auditor=await login('auditeur'),accountant=await login('comptable'),member=await login('membre'),admin=await login('administrateur'),cm=await login('communication');
+const ledger=(await get('ledger&type=depense&month=8&year=2026',auditor)).body;const transaction=ledger.items.find(p=>p.proof&&p.memberId==='demo-membre');assert(transaction,'Exécuter test-professional au préalable');const file=transaction.proof;
+const observation={action:'audit_comment',file,body:'Recette : vérifier la référence et la signature sur cette pièce.',opinion:'À clarifier',operationKey:randomUUID()};let note;
+await check('Espace Auditeur dédié et écritures interdites',async()=>{assert.equal((await request('/audit',{},auditor)).status,200);assert.equal((await post({action:'finance_entry',entry:{operationKey:randomUUID()}},auditor)).status,403);assert.equal((await post({action:'review_payment',id:'absent',accept:true},auditor)).status,403)});
+await check('Auditeur ajoute une observation datée sans modifier l’écriture',async()=>{const r=await post(observation,auditor);assert.equal(r.status,200,JSON.stringify(r.body));note=r.body.id;const after=(await get('ledger&type=depense&month=8&year=2026',auditor)).body.items.find(p=>p.id===transaction.id);assert.deepEqual(after,transaction);const notes=(await get('piece-comments&id='+file,accountant)).body;assert(notes.some(n=>n.id===note&&n.body===observation.body&&n.author&&n.updated))});
+await check('Répétition du commentaire sans doublon',async()=>{assert.equal((await post(observation,auditor)).status,200);assert.equal((await get('piece-comments&id='+file,auditor)).body.filter(n=>n.id===note).length,1);assert.equal((await post({...observation,body:'Autre texte de test'},auditor)).status,409)});
+await check('Seul Auditeur commente, trésorier et membre concerné lisent',async()=>{for(const c of [member,accountant,admin,cm])assert.equal((await post({...observation,operationKey:randomUUID()},c)).status,403);for(const c of [member,accountant,auditor])assert.equal((await get('piece-comments&id='+file,c)).status,200);for(const c of [admin,cm])assert.equal((await get('piece-comments&id='+file,c)).status,403)});
+await check('Commentaires ne peuvent viser une photo personnelle ou un fichier absent',async()=>{const photo=(await get('context',member)).body.member.profile.photo;assert.equal((await post({...observation,file:photo,operationKey:randomUUID()},auditor)).status,404);assert.equal((await get('piece-comments&id=absent',auditor)).status,404);assert.equal((await post({...observation,body:'',operationKey:randomUUID()},auditor)).status,400)});
+await check('Trace d’audit visible au membre concerné sans exposition générale',async()=>{assert((await get('finance-history',member)).body.some(n=>n.action==='observation_auditeur'&&n.target===transaction.id));assert(!(await get('audit',admin)).body.some(n=>n.action==='observation_auditeur'));assert(!(await get('finance-history',cm)).body.some(n=>n.target===transaction.id))});
+await check('Excel Auditeur applique mois année type événement et statut',async()=>{const r=await request('/api/export?type=finance&format=xlsx&transaction=depense&month=8&year=2026&event=demo-event-1&status=approved',{},auditor);assert.equal(r.status,200);assert.equal(r.bytes[0],80);assert.equal(r.bytes[1],75);writeFileSync('work/audit-filtre.xlsx',r.bytes);assert.equal((await request('/api/export?type=finance&format=xlsx&month=13',{},auditor)).status,400)});
+
+await check('Un justificatif ne peut pas être rattaché simultanément à deux écritures',async()=>{
+ const f=new FormData();f.set('file',new File([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jK4cAAAAASUVORK5CYII=','base64')],'audit.png'));f.set('purpose','finance_proof');const u=await request('/api/upload',{method:'POST',body:f},accountant);assert.equal(u.status,200);
+ const base={title:'Contrôle de rattachement simultané',type:'recette',amount:123,date:'2023-02-03',category:'Test de recette',proof:u.body.id,member:'demo-membre'};
+ const results=await Promise.all([post({action:'finance_entry',entry:{...base,operationKey:randomUUID()}},accountant),post({action:'finance_entry',entry:{...base,operationKey:randomUUID(),member:'demo-moderateur'}},accountant)]);
+ assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);const rows=(await get('ledger&status=all',auditor)).body.items.filter(p=>p.proof===u.body.id);assert.equal(rows.length,1);
+});
+await check('Années issues de la date réelle et conservées après filtrage',async()=>{
+ const all=(await get('ledger&year=2026',auditor)).body;assert(all.years.includes('2023'));
+ const old=(await get('ledger&year=2023&month=2&type=recette',auditor)).body;assert(old.items.length);assert(old.items.every(p=>p.date.startsWith('2023-02')));
+ const excel=await request('/api/export?type=finance&format=xlsx&year=2023&month=2&transaction=recette',{},auditor);assert.equal(excel.status,200);writeFileSync('work/audit-2023.xlsx',excel.bytes);
+});
+writeFileSync('docs/tests-auditor.json',JSON.stringify({date:new Date().toISOString(),environment:'local · données fictives',tests:report,passed:report.filter(r=>r.pass).length,total:report.length},null,2));console.log(`${report.filter(r=>r.pass).length}/${report.length} tests réussis`);if(report.some(r=>!r.pass))process.exitCode=1;

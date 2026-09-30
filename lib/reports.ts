@@ -1,0 +1,31 @@
+import {z} from 'zod';
+import {list,rows,settings} from './store';
+import {tariffFor} from './billing';
+
+export const transactionLabels:Record<string,string>={adhesion:'Cartes et adhésions',cotisation:'Cotisations mensuelles',don:'Dons',recette:'Autres recettes',depense:'Dépenses'};
+export function reportFilters(q:URLSearchParams){return z.object({year:z.union([z.literal('all'),z.string().regex(/^(20\d{2}|2100)$/)]).default('all'),month:z.union([z.literal('all'),z.string().regex(/^(0?[1-9]|1[0-2])$/)]).default('all'),type:z.enum(['all','adhesion','cotisation','don','recette','depense']).default('all'),event:z.string().max(100).default('all'),status:z.enum(['all','approved','submitted','rejected']).default('approved')}).parse(Object.fromEntries(['year','month','type','event','status'].filter(k=>q.has(k)).map(k=>[k,q.get(k)])))}
+export function matchesPeriod(period:string,f:{year:string,month:string}){return (f.year==='all'||period.slice(0,4)===f.year)&&(f.month==='all'||Number(period.slice(5,7))===Number(f.month))}
+export async function financialRows(tenant:string,q:URLSearchParams,memberId?:string){
+ const f=reportFilters(q);
+ const records=await rows("SELECT * FROM records WHERE tenant=? AND kind IN ('payment','finance')"+(memberId?" AND ((kind='payment' AND owner=?) OR (kind='finance' AND json_extract(data,'$.member')=?))":''),tenant,...(memberId?[memberId,memberId]:[]));
+ const events=await rows("SELECT id,json_extract(data,'$.title') title FROM records WHERE tenant=? AND kind='event'",tenant);
+ const all=records.map(r=>{const p=JSON.parse(r.data);return {id:r.id,kind:r.kind,owner:r.owner,memberId:r.kind==='payment'?r.owner:p.member||'',memberName:p.memberName||p.donorName||'',title:p.title||transactionLabels[p.type],period:r.kind==='payment'?p.period:p.date.slice(0,7),date:p.date||p.approvedAt||r.updated,type:p.type,amount:p.amount,status:p.status||(r.kind==='finance'?'approved':'submitted'),event:p.event||'',eventTitle:events.find(e=>e.id===p.event)?.title||'',donationSource:p.donationSource||'spontane',campaign:p.campaign||'',donorKey:r.kind==='payment'?r.owner:p.member||(p.donorReference?'external:'+p.donorReference:'anonymous:'+r.id),proof:p.proof||'',reason:p.reason||'',receipt:p.receipt||'',updated:r.updated}});
+ const items=all.filter(p=>matchesPeriod(p.date.slice(0,7),f)&&(f.type==='all'||p.type===f.type)&&(f.event==='all'||p.event===f.event)&&(f.status==='all'||p.status===f.status)).sort((a,b)=>b.date.localeCompare(a.date));
+ return {filters:f,items,years:[...new Set(all.map(p=>p.date.slice(0,4)))].sort().reverse(),events:memberId?events.filter(e=>all.some(p=>p.event===e.id)):events,totals:{received:items.filter(p=>p.status==='approved'&&p.type!=='depense').reduce((n,p)=>n+p.amount,0),expenses:items.filter(p=>p.status==='approved'&&p.type==='depense').reduce((n,p)=>n+p.amount,0),count:items.length}};
+}
+export async function memberStats(tenant:string,q:URLSearchParams){
+ const country=z.string().max(80).parse(q.get('country')||''),commune=z.string().max(100).parse(q.get('commune')||''),gender=z.enum(['','Homme','Femme']).parse(q.get('gender')||'');
+ const where="tenant=? AND suspended=0 AND status IN ('sympathisant','adherent')";
+ const clauses=[where],values:any[]=[tenant];for(const [k,v]of [['country',country],['commune',commune],['gender',gender]])if(v){clauses.push(`json_extract(profile,'$.${k}')=?`);values.push(v)}
+ const [count,options]=await Promise.all([rows(`SELECT COUNT(*) total,COALESCE(SUM(status='adherent'),0) adherents,COALESCE(SUM(status='sympathisant'),0) sympathisants,COALESCE(SUM(json_extract(profile,'$.gender')='Homme'),0) brothers,COALESCE(SUM(json_extract(profile,'$.gender')='Femme'),0) sisters FROM members WHERE ${clauses.join(' AND ')}`,...values),rows(`SELECT DISTINCT json_extract(profile,'$.country') country,json_extract(profile,'$.commune') commune FROM members WHERE ${where}`,tenant)]);
+ return {...count[0],countries:[...new Set(options.map(o=>o.country).filter(Boolean))].sort(),communes:[...new Set(options.filter(o=>!country||o.country===country).map(o=>o.commune).filter(Boolean))].sort()};
+}
+export async function financeSummary(tenant:string,q:URLSearchParams){
+ const f=reportFilters(q),now=new Date(),current=now.toISOString().slice(0,7);
+ const period=(f.year==='all'?current.slice(0,4):f.year)+'-'+String(f.month==='all'?Number(current.slice(5,7)):f.month).padStart(2,'0');
+ const [s,members,payments,ledger]=await Promise.all([settings(tenant),rows("SELECT id,joined FROM members WHERE tenant=? AND status='adherent' AND suspended=0 AND substr(joined,1,7)<=?",tenant,period),rows("SELECT owner,json_extract(data,'$.amount') amount,json_extract(data,'$.period') period FROM records WHERE tenant=? AND kind='payment' AND json_extract(data,'$.type')='cotisation' AND json_extract(data,'$.status')='approved' AND json_extract(data,'$.period')=?",tenant,period),financialRows(tenant,new URLSearchParams({...Object.fromEntries(q),status:'approved'}))]);
+ const paid=new Map<string,number>();payments.forEach(p=>paid.set(p.owner,(paid.get(p.owner)||0)+p.amount));const rate=tariffFor(period,s),due=period<=current;
+ const donations=ledger.items.filter(p=>p.type==='don'),groups=new Map<string,any>();
+ for(const d of donations){const key=d.donationSource+':'+(d.donationSource==='evenement'?d.event:d.donationSource==='appel'?d.campaign:'');let g=groups.get(key);if(!g){g={source:d.donationSource,label:d.donationSource==='evenement'?(d.eventTitle||'Événement'):d.donationSource==='appel'?(d.campaign||'Appel au don'):'Don spontané',amount:0,donors:new Set()};groups.set(key,g)}g.amount+=d.amount;g.donors.add(d.donorKey)}
+ return {period,years:ledger.years,monthly:{rate,eligible:members.length,paid:members.filter(m=>(paid.get(m.id)||0)>=rate).length,arrears:due?members.filter(m=>(paid.get(m.id)||0)<rate).length:0,amount:payments.reduce((n,p)=>n+p.amount,0),due:due?members.reduce((n,m)=>n+Math.max(0,rate-(paid.get(m.id)||0)),0):0},donations:{donors:new Set(donations.map(d=>d.donorKey)).size,amount:donations.reduce((n,d)=>n+d.amount,0),groups:[...groups.values()].map(g=>({...g,donors:g.donors.size}))},totals:ledger.totals,byType:Object.entries(transactionLabels).map(([type,label])=>({type,label,amount:ledger.items.filter(p=>p.type===type).reduce((n,p)=>n+p.amount,0)}))};
+}
