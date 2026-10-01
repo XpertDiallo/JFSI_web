@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-01T18:11:53.587Z",
+  "environment": "local",
+  "tests": [
+    {
+      "name": "Totaux publics anonymes sans identités de membres",
+      "pass": true
+    },
+    {
+      "name": "Visiteur non connecté ne peut pas réagir",
+      "pass": true
+    },
+    {
+      "name": "Six réactions enregistrées sans cumul pour un même membre",
+      "pass": true
+    },
+    {
+      "name": "Nouvel appel identique et concurrence ne doublent pas le total",
+      "pass": true
+    },
+    {
+      "name": "Deux membres puis retrait idempotent conservent des totaux justes",
+      "pass": true
+    },
+    {
+      "name": "Réactions invalides, cibles privées et limite de lots refusées",
+      "pass": true
+    },
+    {
+      "name": "Publication masquée : totaux et écriture indisponibles",
+      "pass": true
+    },
+    {
+      "name": "Brouillon, archive, programmation et responsables : accès contrôlé",
+      "pass": true
+    },
+    {
+      "name": "Discussions et réponses utilisent les mêmes réactions",
+      "pass": true
+    },
+    {
+      "name": "Réponse d’un sujet masqué reste inaccessible aux réactions",
+      "pass": true
+    },
+    {
+      "name": "Réactions disponibles pour un événement publié",
+      "pass": true
+    },
+    {
+      "name": "Anciennes réactions sans type conservées comme pouce bleu",
+      "pass": true
+    },
+    {
+      "name": "Photo du portrait suit l’archivage et la restriction aux membres",
+      "pass": true
+    }
+  ],
+  "passed": 13,
+  "total": 13
+}

@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-01T18:13:06.860Z",
+  "environment": "local",
+  "tests": [
+    {
+      "name": "Premier portrait complet, sans doublon et sans téléphone",
+      "pass": true
+    },
+    {
+      "name": "Photo fournie servie avec son contenu JPEG",
+      "pass": true
+    },
+    {
+      "name": "Lien Facebook officiel présent dans les paramètres publics",
+      "pass": true
+    },
+    {
+      "name": "Un membre ordinaire ne publie pas de portrait",
+      "pass": true
+    },
+    {
+      "name": "Validation du portrait et de son consentement côté serveur",
+      "pass": true
+    },
+    {
+      "name": "Création, lecture et modification du portrait sans photo obligatoire",
+      "pass": true
+    },
+    {
+      "name": "Confidentialité : aucune API privée ouverte aux anonymes",
+      "pass": true
+    }
+  ],
+  "passed": 7,
+  "total": 7
+}

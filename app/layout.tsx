@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./publications.css";
+import "./reactions.css";
 
 export const metadata: Metadata = {
   title: "JFSI — Jardin des Frères et Sœurs en Islam",

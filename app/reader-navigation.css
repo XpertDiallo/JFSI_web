@@ -1,0 +1,10 @@
+.reader-page-shell{position:relative;padding-inline:38px;background:#e8ece8;border:1px solid #d8e3dc;border-radius:8px}
+.reader-page-surface{min-width:0}
+.reader-page-surface:focus-visible{outline:3px solid #e89517;outline-offset:2px}
+.reader-page-arrow{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:54px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid #ccdcd2;border-radius:6px;background:#fff;color:#07573d;box-shadow:0 2px 8px #123d2415}
+.reader-page-arrow.previous{left:0}.reader-page-arrow.next{right:0}
+.reader-page-arrow:hover:not(:disabled){background:#e0f2e7}
+.reader-page-arrow:disabled{opacity:.35;cursor:default}
+.reader-gesture-hint{font-size:12px;color:#53665b;margin:0 0 10px}
+.reader-page-shell .page-image-scroll img{display:block;margin:0 auto}
+@media(max-width:550px){.reader-page-shell{padding-inline:30px}.reader-page-arrow{width:28px;height:48px}.reader-page-arrow svg{width:21px;height:21px}}
