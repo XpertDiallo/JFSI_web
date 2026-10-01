@@ -9,19 +9,8 @@ async function hiddenInput(){
   process.stdin.setEncoding('utf8');if(process.stdin.isTTY)process.stdin.setRawMode(true);process.stdin.resume();
   return await new Promise((resolve,reject)=>{let text='';function read(s){text+=s;if(text.includes('\u0003'))process.exit(130);if(/[\r\n]/.test(text)){process.stdin.off('data',read);if(process.stdin.isTTY)process.stdin.setRawMode(false);process.stdin.pause();try{resolve(JSON.parse(text.trim()));}catch{reject(new Error('Configuration invalide.'));}}}process.stdin.on('data',read);});
 }
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
-async function api(suffix='',body){
-  for(let attempt=0;attempt<5;attempt++){
-    let result;
-    try{
-      result=await fetch(config.origin+'/api/library-import'+suffix,{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(90000),headers:{'OAI-Sites-Authorization':'Bearer '+config.sitesToken,'x-jfsi-import-token':config.importToken,...(body?{'Content-Type':'application/octet-stream'}:{})},body});
-    }catch{if(attempt===4)throw new Error('Transfert interrompu après 5 tentatives ; relancer pour reprendre.');await wait(1000*2**attempt);continue;}
-    if([429,500,502,503,504].includes(result.status)&&attempt<4){await result.body?.cancel();await wait(1000*2**attempt);continue;}
-    const text=await result.text();let data;try{data=JSON.parse(text);}catch{throw new Error('Réponse inattendue (HTTP '+result.status+').');}
-    if(!result.ok)throw new Error('Import refusé (HTTP '+result.status+') : '+String(data.error||'erreur').slice(0,200));
-    return data;
-  }
-}
+import {requestImport} from './import-request.mjs';
+const api=(suffix='',body)=>requestImport(config,suffix,body);
 function batches(missing){const result=[];let group=[],size=0;for(const name of missing){const a=manifest.files[name];if(!a)throw new Error('Le serveur réclame un fichier hors manifeste.');if(group.length&&(size+a.size>4*1024*1024||group.length>=32)){result.push(group);group=[];size=0;}group.push(name);size+=a.size;}if(group.length)result.push(group);return result;}
 function pack(group){const header=Buffer.from(JSON.stringify(group)),n=Buffer.alloc(4);n.writeUInt32BE(header.length);const bodies=group.map(name=>{const full=path.resolve(root,name);if(!full.startsWith(root+path.sep))throw new Error('Chemin interdit.');const bytes=readFileSync(full),a=manifest.files[name];if(bytes.length!==a.size||createHash('sha256').update(bytes).digest('hex')!==a.sha256)throw new Error('Ressource locale modifiée : '+name);return bytes;});return Buffer.concat([n,header,...bodies]);}
 try{
