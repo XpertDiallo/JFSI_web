@@ -51,6 +51,7 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    publicDir: process.env.JFSI_BUILD_PUBLIC_DIR || "public",
     server: {
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
       watch: { ignored: ["**/public/books/**", "**/resources-private/**", "**/work/**"], ...(isCodexSeatbeltSandbox ? { useFsEvents: false, usePolling: true } : {}) },
